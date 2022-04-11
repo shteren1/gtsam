@@ -8,11 +8,15 @@ try:
     X = gtsam.symbol_shorthand.X
     PT_NOISE = gtsam.noiseModel.Diagonal.Sigmas(np.ones(2))
     PT_NOISE = gtsam.noiseModel.Robust.Create(gtsam.noiseModel.mEstimator.Cauchy.Create(1), PT_NOISE)
+    LANDMARK_PRIOR = gtsam.noiseModel.Diagonal.Sigmas(0.1 * np.ones(3))
+    POSE_PRIOR = gtsam.noiseModel.Diagonal.Sigmas(0.1 * np.ones(6))
 except AttributeError:
     L = gtsam.symbol_shorthand_L
     X = gtsam.symbol_shorthand_X
     PT_NOISE = gtsam.noiseModel_Diagonal.Sigmas(np.ones(2))
     PT_NOISE = gtsam.noiseModel_Robust.Create(gtsam.noiseModel_mEstimator_Cauchy.Create(1), PT_NOISE)
+    LANDMARK_PRIOR = gtsam.noiseModel_Diagonal.Sigmas(0.1 * np.ones(3))
+    POSE_PRIOR = gtsam.noiseModel_Diagonal.Sigmas(0.1 * np.ones(6))
 FOCAL = 1500
 IMG_SIZE = (1280, 1080)
 RADIUS = 20
@@ -64,11 +68,11 @@ if __name__ == '__main__':
                 if not added:
                     values.insert(L(idx), gtsam.Point3(landmark + landmarks_noise[idx]))
                     added = True
+    graph.push_back(gtsam.PriorFactorPose3(X(0), poses[0], POSE_PRIOR))
+    graph.push_back(gtsam.PriorFactorPoint3(L(0), gtsam.Point3(landmarks[0]), LANDMARK_PRIOR))
     error0 = graph.error(values)
     optimizer = gtsam.LevenbergMarquardtOptimizer(graph, values)
     t1 = time()
     result = optimizer.optimize()
     print(f"optimizer ran: {optimizer.iterations()} iterations, time took: {time() - t1} seconds, initial error: {error0}, final error: {graph.error(result)}")
     pass
-
-
